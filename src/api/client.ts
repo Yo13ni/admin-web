@@ -134,7 +134,7 @@ export const api = {
     return request<Poem[]>(`/poems${q ? `?${q}` : ''}`, {}, false)
   },
 
-  createPoem(body: { title: string; content: string; categoryId: string }) {
+  createPoem(body: { title: string; content: string; categoryId: string; audioUrl?: string }) {
     return request<Poem>('/admin/poems', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -143,7 +143,7 @@ export const api = {
 
   updatePoem(
     id: string,
-    body: { title?: string; content?: string; categoryId?: string },
+    body: { title?: string; content?: string; categoryId?: string; audioUrl?: string },
   ) {
     return request<Poem>(`/admin/poems/${id}`, {
       method: 'PATCH',

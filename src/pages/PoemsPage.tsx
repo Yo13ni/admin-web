@@ -3,7 +3,7 @@ import { api, ApiError } from '../api/client'
 import type { Category, Poem } from '../api/types'
 import { EmptyState, ErrorBanner, PageHeader } from '../components/ui'
 
-const emptyForm = { title: '', content: '', categoryId: '' }
+const emptyForm = { title: '', content: '', categoryId: '', audioUrl: '' }
 
 export function PoemsPage() {
   const [poems, setPoems] = useState<Poem[]>([])
@@ -52,6 +52,7 @@ export function PoemsPage() {
       title: '',
       content: '',
       categoryId: categories[0]?.id ?? '',
+      audioUrl: '',
     })
     setShowForm(true)
   }
@@ -62,6 +63,7 @@ export function PoemsPage() {
       title: poem.title,
       content: poem.content,
       categoryId: poem.categoryId,
+      audioUrl: poem.audioUrl ?? '',
     })
     setShowForm(true)
   }
@@ -181,6 +183,13 @@ export function PoemsPage() {
             placeholder="Content"
             className="w-full rounded-md border border-line px-3 py-2 font-ethiopic text-sm leading-relaxed outline-none ring-forest focus:ring-2"
           />
+          <input
+            value={form.audioUrl}
+            onChange={(e) => setForm({ ...form, audioUrl: e.target.value })}
+            placeholder="Audio URL (optional)"
+            type="url"
+            className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none ring-forest focus:ring-2"
+          />
           <div className="flex gap-2">
             <button
               type="submit"
@@ -221,6 +230,16 @@ export function PoemsPage() {
                   <p className="mt-2 line-clamp-2 text-sm text-ink-muted font-ethiopic">
                     {poem.content}
                   </p>
+                  {poem.audioUrl ? (
+                    <a
+                      href={poem.audioUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-forest underline"
+                    >
+                      <span aria-hidden>▶</span> Audio
+                    </a>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <button

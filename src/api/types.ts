@@ -29,6 +29,7 @@ export type Submission = {
   id: string
   title: string
   content: string
+  audioUrl: string | null
   categoryId: string
   categoryName: string
   submitterName: string | null
@@ -45,6 +46,7 @@ export type Poem = {
   id: string
   title: string
   content: string
+  audioUrl: string | null
   categoryId: string
   categoryName: string
   approvedBy: string | null
@@ -56,6 +58,7 @@ export type Poem = {
 export type ApprovePayload = {
   title?: string
   content?: string
+  audioUrl?: string
   categoryId?: string
 }
 

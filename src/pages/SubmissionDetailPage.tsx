@@ -12,6 +12,7 @@ export function SubmissionDetailPage() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [categoryId, setCategoryId] = useState('')
+  const [audioUrl, setAudioUrl] = useState('')
   const [adminNote, setAdminNote] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -34,6 +35,7 @@ export function SubmissionDetailPage() {
         setTitle(sub.title)
         setContent(sub.content)
         setCategoryId(sub.categoryId)
+        setAudioUrl(sub.audioUrl ?? '')
         setAdminNote(sub.adminNote ?? '')
       } catch (err) {
         if (!cancelled) {
@@ -58,7 +60,7 @@ export function SubmissionDetailPage() {
     setBusy(true)
     setError('')
     try {
-      await api.approveSubmission(id, { title, content, categoryId })
+      await api.approveSubmission(id, { title, content, categoryId, audioUrl })
       navigate('/submissions')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Approve failed')
@@ -162,6 +164,18 @@ export function SubmissionDetailPage() {
             required
             rows={14}
             className="w-full rounded-md border border-line bg-panel px-3 py-2 font-ethiopic leading-relaxed outline-none ring-forest focus:ring-2 disabled:opacity-70"
+          />
+        </label>
+
+        <label className="block text-sm">
+          <span className="mb-1.5 block font-medium">Audio URL</span>
+          <input
+            type="url"
+            value={audioUrl}
+            onChange={(e) => setAudioUrl(e.target.value)}
+            disabled={!canReview}
+            placeholder="https://…/song.mp3 (optional)"
+            className="w-full rounded-md border border-line bg-panel px-3 py-2 outline-none ring-forest focus:ring-2 disabled:opacity-70"
           />
         </label>
 
