@@ -22,7 +22,7 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-svh lg:grid lg:grid-cols-[240px_1fr]">
-      <aside className="border-b border-line bg-ink text-white lg:border-b-0 lg:border-r lg:border-line/20">
+      <aside className="sticky top-0 z-10 border-b border-line bg-ink text-white lg:static lg:z-auto lg:border-b-0 lg:border-r lg:border-line/20">
         <div className="px-5 py-6">
           <p className="font-ethiopic text-xl font-semibold tracking-wide">
             መዝሙር ደብተር

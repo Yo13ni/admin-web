@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { api, ApiError } from '../api/client'
 import type { Category } from '../api/types'
 import { EmptyState, ErrorBanner, PageHeader } from '../components/ui'
@@ -11,6 +11,7 @@ export function CategoriesPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   async function load() {
     setLoading(true)
@@ -29,6 +30,11 @@ export function CategoriesPage() {
   useEffect(() => {
     void load()
   }, [])
+
+  useEffect(() => {
+    if (!editingId) return
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [editingId])
 
   function startEdit(cat: Category) {
     setEditingId(cat.id)
@@ -89,8 +95,16 @@ export function CategoriesPage() {
 
       <form
         onSubmit={onSubmit}
-        className="mb-6 grid gap-3 rounded-lg border border-line bg-panel p-4 sm:grid-cols-[1fr_120px_auto_auto]"
+        ref={formRef}
+        className={
+          editingId
+            ? 'mb-6 grid scroll-mt-4 gap-3 rounded-lg border border-line bg-panel p-4 ring-2 ring-forest sm:grid-cols-[1fr_120px_auto_auto]'
+            : 'mb-6 grid scroll-mt-4 gap-3 rounded-lg border border-line bg-panel p-4 sm:grid-cols-[1fr_120px_auto_auto]'
+        }
       >
+        {editingId ? (
+          <p className="text-sm font-semibold sm:col-span-full">Editing category</p>
+        ) : null}
         <input
           required
           value={name}
@@ -109,7 +123,7 @@ export function CategoriesPage() {
         <button
           type="submit"
           disabled={busy}
-          className="rounded-md bg-forest px-3 py-2 text-sm font-semibold text-white hover:bg-forest-dark disabled:opacity-60"
+          className="min-h-11 rounded-md bg-forest px-4 py-2 text-sm font-semibold text-white hover:bg-forest-dark disabled:opacity-60"
         >
           {editingId ? 'Update' : 'Add'}
         </button>
@@ -117,7 +131,7 @@ export function CategoriesPage() {
           <button
             type="button"
             onClick={resetForm}
-            className="rounded-md border border-line px-3 py-2 text-sm hover:bg-paper"
+            className="min-h-11 rounded-md border border-line px-4 py-2 text-sm hover:bg-paper"
           >
             Cancel
           </button>
@@ -142,7 +156,14 @@ export function CategoriesPage() {
             </thead>
             <tbody className="divide-y divide-line">
               {categories.map((cat) => (
-                <tr key={cat.id}>
+                <tr
+                  key={cat.id}
+                  className={
+                    editingId === cat.id
+                      ? 'bg-paper outline outline-2 -outline-offset-2 outline-forest'
+                      : undefined
+                  }
+                >
                   <td className="px-4 py-3 font-ethiopic font-medium">
                     {cat.name}
                   </td>
@@ -152,7 +173,7 @@ export function CategoriesPage() {
                       <button
                         type="button"
                         onClick={() => startEdit(cat)}
-                        className="rounded-md border border-line px-2.5 py-1 text-xs hover:bg-paper"
+                        className="min-h-11 rounded-md border border-line px-3 py-2 text-xs hover:bg-paper"
                       >
                         Edit
                       </button>
@@ -160,7 +181,7 @@ export function CategoriesPage() {
                         type="button"
                         disabled={busy}
                         onClick={() => void onDelete(cat.id)}
-                        className="rounded-md border border-rose/30 px-2.5 py-1 text-xs text-rose hover:bg-rose/5 disabled:opacity-60"
+                        className="min-h-11 rounded-md border border-rose/30 px-3 py-2 text-xs text-rose hover:bg-rose/5 disabled:opacity-60"
                       >
                         Delete
                       </button>
