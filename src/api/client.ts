@@ -126,10 +126,11 @@ export const api = {
     })
   },
 
-  listPoems(params?: { categoryId?: string; q?: string }) {
+  listPoems(params?: { categoryId?: string; q?: string; edited?: boolean }) {
     const search = new URLSearchParams()
     if (params?.categoryId) search.set('categoryId', params.categoryId)
     if (params?.q) search.set('q', params.q)
+    if (params?.edited !== undefined) search.set('edited', String(params.edited))
     const q = search.toString()
     return request<Poem[]>(`/poems${q ? `?${q}` : ''}`, {}, false)
   },
@@ -143,7 +144,13 @@ export const api = {
 
   updatePoem(
     id: string,
-    body: { title?: string; content?: string; categoryId?: string; audioUrl?: string },
+    body: {
+      title?: string
+      content?: string
+      categoryId?: string
+      audioUrl?: string
+      isEdited?: boolean
+    },
   ) {
     return request<Poem>(`/admin/poems/${id}`, {
       method: 'PATCH',

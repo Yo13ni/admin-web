@@ -5,20 +5,36 @@ import { EmptyState, ErrorBanner, PageHeader } from '../components/ui'
 
 const emptyForm = { title: '', content: '', categoryId: '', audioUrl: '' }
 
+type EditedFilter = 'ALL' | 'EDITED' | 'UNEDITED'
+
+const editedFilters: Array<{ value: EditedFilter; label: string }> = [
+  { value: 'ALL', label: 'All' },
+  { value: 'EDITED', label: 'Edited' },
+  { value: 'UNEDITED', label: 'Unedited' },
+]
+
+function toEditedParam(value: EditedFilter): boolean | undefined {
+  if (value === 'EDITED') return true
+  if (value === 'UNEDITED') return false
+  return undefined
+}
+
 export function PoemsPage() {
   const [poems, setPoems] = useState<Poem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [q, setQ] = useState('')
   const [categoryId, setCategoryId] = useState('')
+  const [editedFilter, setEditedFilter] = useState<EditedFilter>('ALL')
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
-  async function load(search = q, cat = categoryId) {
+  async function load(search = q, cat = categoryId, edited = editedFilter) {
     setLoading(true)
     setError('')
     try {
@@ -26,6 +42,7 @@ export function PoemsPage() {
         api.listPoems({
           q: search.trim() || undefined,
           categoryId: cat || undefined,
+          edited: toEditedParam(edited),
         }),
         api.listCategories(),
       ])
@@ -108,6 +125,25 @@ export function PoemsPage() {
     }
   }
 
+  function applyEditedFilter(value: EditedFilter) {
+    setEditedFilter(value)
+    void load(q, categoryId, value)
+  }
+
+  async function onToggleEdited(poem: Poem) {
+    const next = !poem.isEdited
+    setTogglingId(poem.id)
+    setError('')
+    try {
+      await api.updatePoem(poem.id, { isEdited: next })
+      await load()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Update failed')
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -123,6 +159,24 @@ export function PoemsPage() {
           </button>
         }
       />
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {editedFilters.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => applyEditedFilter(f.value)}
+            className={[
+              'rounded-md border px-3 py-1.5 text-sm font-medium transition',
+              editedFilter === f.value
+                ? 'border-forest bg-forest text-white'
+                : 'border-line bg-panel text-ink hover:bg-paper',
+            ].join(' ')}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <input
@@ -219,7 +273,15 @@ export function PoemsPage() {
       {loading ? (
         <p className="text-sm text-ink-muted">Loading…</p>
       ) : poems.length === 0 ? (
-        <EmptyState message="No poems found." />
+        <EmptyState
+          message={
+            editedFilter === 'EDITED'
+              ? 'No edited poems found.'
+              : editedFilter === 'UNEDITED'
+                ? 'No unedited poems found.'
+                : 'No poems found.'
+          }
+        />
       ) : (
         <div className="overflow-hidden rounded-lg border border-line bg-panel">
           <ul className="divide-y divide-line">
@@ -234,9 +296,21 @@ export function PoemsPage() {
               >
                 <div className="min-w-0">
                   <p className="font-ethiopic font-medium">{poem.title}</p>
-                  <p className="mt-1 text-sm text-ink-muted">
-                    {poem.categoryName} ·{' '}
-                    {new Date(poem.createdAt).toLocaleDateString()}
+                  <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-ink-muted">
+                    <span>
+                      {poem.categoryName} ·{' '}
+                      {new Date(poem.createdAt).toLocaleDateString()}
+                    </span>
+                    <span
+                      className={[
+                        'rounded-full px-2 py-0.5 text-xs font-medium',
+                        poem.isEdited
+                          ? 'bg-forest/10 text-forest'
+                          : 'bg-line/40 text-ink-muted',
+                      ].join(' ')}
+                    >
+                      {poem.isEdited ? 'Edited' : 'Unedited'}
+                    </span>
                   </p>
                   <p className="mt-2 line-clamp-2 text-sm text-ink-muted font-ethiopic">
                     {poem.content}
@@ -253,6 +327,14 @@ export function PoemsPage() {
                   ) : null}
                 </div>
                 <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    disabled={togglingId === poem.id}
+                    onClick={() => void onToggleEdited(poem)}
+                    className="min-h-11 rounded-md border border-line px-4 py-2.5 text-sm hover:bg-paper disabled:opacity-60"
+                  >
+                    {poem.isEdited ? 'Mark unedited' : 'Mark edited'}
+                  </button>
                   <button
                     type="button"
                     onClick={() => startEdit(poem)}

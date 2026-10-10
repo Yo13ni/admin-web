@@ -51,6 +51,7 @@ export type Poem = {
   categoryName: string
   approvedBy: string | null
   approvedAt: string | null
+  isEdited: boolean
   createdAt: string
   updatedAt: string
 }
